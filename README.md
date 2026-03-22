@@ -2,15 +2,18 @@
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Powered by Claude](https://img.shields.io/badge/powered%20by-Claude-orange.svg)](https://www.anthropic.com)
+[![No API Key](https://img.shields.io/badge/API%20Key-Not%20Required-brightgreen.svg)](#)
+[![Powered by Claude Code](https://img.shields.io/badge/powered%20by-Claude%20Code-orange.svg)](https://claude.ai/download)
+[![Claude Code Skill](https://img.shields.io/badge/Claude%20Code-Skill%20Ready-blueviolet.svg)](#)
 
 **What to Build in the Agent Era — AI 에이전트 시대의 선택장애 해결 프레임워크**
 
+> **No API key needed.** AgentForge runs entirely through your locally installed Claude Code.
+
 AgentForge helps Claude Code users and AI power-users overcome decision paralysis
 about what to build next. It combines personal ontology mapping, local environment
-scanning, GitHub trend analysis, and AI-powered recommendations to produce a
-personalized, immediately actionable MVP.
+scanning, GitHub trend analysis, and Claude-powered recommendations to produce a
+personalized, immediately actionable MVP — all using your existing Claude Code session.
 
 ---
 
@@ -60,14 +63,14 @@ AgentForge solves all of this in one automated pipeline.
     v
 +-------------------+
 | 4. Gap Analysis   |  Claude analyzes ecosystem for gaps,
-|   (Claude API)    |  pain themes, and opportunities
+|  (Claude Code)    |  pain themes, and opportunities
 +-------------------+
     |
     | GapAnalysis
     v
 +-------------------+
 | 5. Recommender    |  Combines ontology + tools + gaps
-|   (Claude API)    |  -> Top 5 personalized recommendations
+|  (Claude Code)    |  -> Top 5 personalized recommendations
 +-------------------+
     |
     | [User selects #N]
@@ -81,7 +84,7 @@ AgentForge solves all of this in one automated pipeline.
     v
 +-------------------+
 | 7. MVP Builder    |  Claude generates complete working codebase:
-|   (Claude API)    |  Python files, README, tests, Makefile
+|  (Claude Code)    |  Python files, README, tests, Makefile
 +-------------------+
     |
     v
@@ -90,17 +93,21 @@ AgentForge solves all of this in one automated pipeline.
 
 ---
 
+## Requirements
+
+- Python 3.11+
+- [Claude Code](https://claude.ai/download) installed and logged in
+- (Optional) `GITHUB_TOKEN` for higher GitHub API rate limits
+
+No `ANTHROPIC_API_KEY` needed. AgentForge uses your Claude Code session directly.
+
+---
+
 ## Quick Install
 
 ```bash
-pip install agentforge
-```
-
-Or install from source:
-
-```bash
-git clone https://github.com/agentforge/agentforge
-cd agentforge
+git clone https://github.com/AlexAI-MCP/AgentForge
+cd AgentForge
 pip install -e .
 ```
 
@@ -109,17 +116,36 @@ pip install -e .
 ## Quick Start
 
 ```bash
-# 1. Set up credentials
-cp .env.example .env
-# Edit .env: add ANTHROPIC_API_KEY (required) and GITHUB_TOKEN (recommended)
-
-# 2. Run the full pipeline
+# Run the full pipeline (no API key needed!)
 agentforge run
 
-# 3. Answer 20 questions, get personalized recommendations, build your MVP
+# Answer 20 questions, get personalized recommendations, build your MVP
 ```
 
-That's it. AgentForge handles everything else.
+That's it. AgentForge handles everything else using your local Claude Code.
+
+---
+
+## Live Demo Output
+
+Real output from AlexLee's profile (A- · 91/100):
+
+```
+#1 ConstructIQ Korea   FIT:9.8  MARKET:8.5  Medium  8weeks
+   건설 현장의 모든 지식을 AI로 연결하는 건설 특화 GraphRAG 플랫폼
+
+#2 OntologyMe          FIT:9.2  MARKET:7.8  Medium  6weeks
+   한국 최초 퍼스널 지식 그래프 SaaS
+
+#3 MCPHub Korea        FIT:8.7  MARKET:8.2  Hard    10weeks
+   한국어 MCP 스킬 마켓플레이스
+
+#4 GraphRAG Enterprise FIT:9.0  MARKET:9.0  Hard    12weeks
+   한국 기업 문서를 위한 엔터프라이즈 GraphRAG 레이어
+
+#5 AI Community OS     FIT:9.5  MARKET:7.2  Easy    4weeks
+   1200명 Discord 커뮤니티를 위한 지식 운영체제
+```
 
 ---
 
