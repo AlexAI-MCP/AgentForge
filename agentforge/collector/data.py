@@ -21,7 +21,6 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Any
 
-import anthropic
 import httpx
 from rich.console import Console
 from rich.live import Live
@@ -31,6 +30,7 @@ from rich.spinner import Spinner
 
 from agentforge.config import Config
 from agentforge.ontology.builder import PersonalOntology
+from agentforge.llm import ask_json
 from agentforge.recommender.engine import Recommendation
 
 console = Console()
@@ -258,7 +258,6 @@ class DataCollector:
 
     def __init__(self, config: Config) -> None:
         self.config = config
-        self._client = anthropic.Anthropic(api_key=config.anthropic_api_key)
         self._http_headers: dict[str, str] = {
             "Accept": "application/vnd.github+json",
             "X-GitHub-Api-Version": "2022-11-28",
@@ -449,24 +448,9 @@ class DataCollector:
             console=console,
             refresh_per_second=10,
         ):
-            message = self._client.messages.create(
-                model=self.config.model,
-                max_tokens=3000,
-                system=_BRIEF_SYSTEM_PROMPT,
-                messages=[{"role": "user", "content": prompt}],
-            )
-
-        raw_text: str = message.content[0].text.strip()  # type: ignore[union-attr]
-
-        if raw_text.startswith("```"):
-            lines = raw_text.split("\n")
-            raw_text = "\n".join(
-                line for line in lines if not line.startswith("```")
-            ).strip()
-
-        try:
-            return json.loads(raw_text)  # type: ignore[no-any-return]
-        except json.JSONDecodeError:
+            try:
+                return ask_json(prompt, system=_BRIEF_SYSTEM_PROMPT)  # type: ignore[no-any-return]
+            except ValueError:
             # Return a minimal fallback rather than crashing
             return {
                 "mvp_scope": recommendation.first_steps,

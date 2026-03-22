@@ -23,7 +23,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-import anthropic
 from rich.console import Console
 from rich.live import Live
 from rich.panel import Panel
@@ -34,6 +33,7 @@ from rich.tree import Tree
 from agentforge.collector.data import ProjectBrief
 from agentforge.config import Config
 from agentforge.ontology.builder import PersonalOntology
+from agentforge.llm import ask_json
 
 console = Console()
 
@@ -194,7 +194,6 @@ class MVPBuilder:
 
     def __init__(self, config: Config) -> None:
         self.config = config
-        self._client = anthropic.Anthropic(api_key=config.anthropic_api_key)
 
     def build(
         self,
@@ -236,27 +235,10 @@ class MVPBuilder:
             console=console,
             refresh_per_second=10,
         ):
-            message = self._client.messages.create(
-                model=self.config.model,
-                max_tokens=8192,
-                system=_SYSTEM_PROMPT,
-                messages=[{"role": "user", "content": prompt}],
-            )
-
-        raw_text: str = message.content[0].text.strip()  # type: ignore[union-attr]
-
-        # Strip code fences
-        if raw_text.startswith("```"):
-            lines = raw_text.split("\n")
-            raw_text = "\n".join(
-                line for line in lines if not line.startswith("```")
-            ).strip()
-
-        try:
-            data: dict[str, Any] = json.loads(raw_text)
-        except json.JSONDecodeError:
-            # Try to extract JSON from the text
-            data = self._extract_json_fallback(raw_text, brief, package_name)
+            try:
+                data: dict[str, Any] = ask_json(prompt, system=_SYSTEM_PROMPT)
+            except ValueError as exc:
+                data = self._extract_json_fallback(str(exc), brief, package_name)
 
         generated_files: list[GeneratedFile] = []
         for file_data in data.get("files", []):

@@ -13,7 +13,6 @@ import json
 from dataclasses import dataclass, field, asdict
 from typing import Any
 
-import anthropic
 from rich.console import Console
 from rich.live import Live
 from rich.panel import Panel
@@ -23,6 +22,7 @@ from rich.text import Text
 
 from agentforge.config import Config
 from agentforge.github.analyzer import GapAnalysis
+from agentforge.llm import ask_json
 from agentforge.ontology.builder import PersonalOntology
 from agentforge.scanner.tools import ToolProfile
 
@@ -247,7 +247,6 @@ class RecommendationEngine:
 
     def __init__(self, config: Config) -> None:
         self.config = config
-        self._client = anthropic.Anthropic(api_key=config.anthropic_api_key)
 
     def recommend(
         self,
@@ -317,27 +316,7 @@ class RecommendationEngine:
             console=console,
             refresh_per_second=10,
         ):
-            message = self._client.messages.create(
-                model=self.config.model,
-                max_tokens=4096,
-                system=_SYSTEM_PROMPT,
-                messages=[{"role": "user", "content": prompt}],
-            )
-
-        raw_text: str = message.content[0].text.strip()  # type: ignore[union-attr]
-
-        if raw_text.startswith("```"):
-            lines = raw_text.split("\n")
-            raw_text = "\n".join(
-                line for line in lines if not line.startswith("```")
-            ).strip()
-
-        try:
-            data: dict[str, Any] = json.loads(raw_text)
-        except json.JSONDecodeError as exc:
-            raise ValueError(
-                f"Claude returned malformed JSON for recommendations.\nRaw:\n{raw_text}"
-            ) from exc
+            data: dict[str, Any] = ask_json(prompt, system=_SYSTEM_PROMPT)
 
         return self._parse_recommendation_set(data)
 

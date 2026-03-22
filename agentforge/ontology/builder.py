@@ -12,13 +12,13 @@ import json
 from dataclasses import dataclass, field, asdict
 from typing import Any
 
-import anthropic
 from rich.console import Console
 from rich.panel import Panel
 from rich.spinner import Spinner
 from rich.live import Live
 
 from agentforge.config import Config
+from agentforge.llm import ask_json
 from agentforge.ontology.survey import SurveyAnswers
 
 console = Console()
@@ -166,10 +166,9 @@ class OntologyBuilder:
 
     def __init__(self, config: Config) -> None:
         self.config = config
-        self._client = anthropic.Anthropic(api_key=config.anthropic_api_key)
 
     def build(self, answers: SurveyAnswers) -> PersonalOntology:
-        """Build a PersonalOntology from survey answers using Claude.
+        """Build a PersonalOntology from survey answers using local claude CLI.
 
         Args:
             answers: Completed SurveyAnswers from the survey runner.
@@ -179,7 +178,6 @@ class OntologyBuilder:
 
         Raises:
             ValueError: If Claude returns malformed JSON.
-            anthropic.APIError: On API-level failures.
         """
         console.print("\n[dim]Synthesizing your Personal Ontology with Claude...[/]\n")
 
@@ -190,29 +188,9 @@ class OntologyBuilder:
             console=console,
             refresh_per_second=10,
         ):
-            message = self._client.messages.create(
-                model=self.config.model,
-                max_tokens=2048,
-                system=_SYSTEM_PROMPT,
-                messages=[{"role": "user", "content": prompt}],
-            )
+            data: dict[str, Any] = ask_json(prompt, system=_SYSTEM_PROMPT)
 
-        raw_text: str = message.content[0].text.strip()  # type: ignore[union-attr]
-
-        # Strip markdown code fences if present
-        if raw_text.startswith("```"):
-            lines = raw_text.split("\n")
-            raw_text = "\n".join(
-                line for line in lines if not line.startswith("```")
-            ).strip()
-
-        try:
-            data: dict[str, Any] = json.loads(raw_text)
-        except json.JSONDecodeError as exc:
-            raise ValueError(
-                f"Claude returned malformed JSON. Raw response:\n{raw_text}"
-            ) from exc
-
+        raw_text = json.dumps(data, ensure_ascii=False)
         ontology = PersonalOntology.from_dict(data)
         ontology.raw_claude_analysis = raw_text
         return ontology
